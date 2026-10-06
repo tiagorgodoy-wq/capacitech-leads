@@ -103,8 +103,12 @@ st.markdown("""
 # ==============================================================================
 
 # Credenciais padrão (podem ser substituídas por st.secrets ou variáveis de ambiente)
-AUTH_USER = st.secrets.get("AUTH_USER", "admin")
-AUTH_PASSWORD = st.secrets.get("AUTH_PASSWORD", "capacitech2026")
+try:
+    AUTH_USER = st.secrets.get("AUTH_USER", "admin")
+    AUTH_PASSWORD = st.secrets.get("AUTH_PASSWORD", "capacitech2026")
+except Exception:
+    AUTH_USER = "admin"
+    AUTH_PASSWORD = "capacitech2026"
 
 def check_login():
     """Valida o login e mantém o estado na sessão."""
@@ -148,21 +152,34 @@ CSV_PATH = "leads_eletrica_capacitech_200km.csv"
 
 @st.cache_data(ttl=60)
 def load_leads_data():
-    """Carrega a base de leads, suportando múltiplos arquivos se disponíveis."""
-    if os.path.exists(CSV_PATH):
-        df = pd.read_csv(CSV_PATH, sep=";", encoding="utf-8-sig", dtype=str)
-    elif os.path.exists("leads_anel1.csv"):
-        # Carrega arquivos particionados e combina
-        dfs = []
-        for p in ["leads_anel1.csv", "leads_anel2.csv", "leads_anel3.csv"]:
-            if os.path.exists(p):
-                dfs.append(pd.read_csv(p, sep=";", encoding="utf-8", dtype=str))
-        if dfs:
-            df = pd.concat(dfs, ignore_index=True)
+    """Carrega a base de leads de forma resiliente em qualquer estrutura de pastas."""
+    app_dir = os.path.dirname(os.path.abspath(__file__))
+    candidates = [
+        os.path.join(app_dir, "leads_eletrica_capacitech_200km.csv"),
+        os.path.join(os.getcwd(), "leads_eletrica_capacitech_200km.csv"),
+        os.path.join(os.getcwd(), "capacitech-leads", "leads_eletrica_capacitech_200km.csv"),
+        "leads_eletrica_capacitech_200km.csv"
+    ]
+    
+    csv_file = None
+    for c in candidates:
+        if os.path.exists(c):
+            csv_file = c
+            break
+            
+    if csv_file:
+        df = pd.read_csv(csv_file, sep=";", encoding="utf-8-sig", dtype=str)
+    else:
+        # Busca recursiva caso a pasta tenha sido aninhada no upload
+        found = []
+        for root, _, files in os.walk(os.getcwd()):
+            for f in files:
+                if f == "leads_eletrica_capacitech_200km.csv":
+                    found.append(os.path.join(root, f))
+        if found:
+            df = pd.read_csv(found[0], sep=";", encoding="utf-8-sig", dtype=str)
         else:
             return pd.DataFrame()
-    else:
-        return pd.DataFrame()
 
     # Preenchimento de nulos
     for col in df.columns:
