@@ -120,10 +120,11 @@ def check_login():
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             st.markdown("""
-            <div style="background: white; padding: 32px; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 4px 12px rgba(0,0,0,0.06); text-align: center;">
+            <div style="background: white; padding: 24px; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 4px 12px rgba(0,0,0,0.06); text-align: center; margin-bottom: 20px;">
                 <div style="font-size: 40px; margin-bottom: 8px;">⚡</div>
                 <h2 style="color: #003B6D; margin: 0 0 8px 0;">CAPACITECH | WEG</h2>
-                <p style="color: #64748B; font-size: 14px; margin-bottom: 24px;">Painel Restrito de Inteligência Comercial Radial B2B</p>
+                <p style="color: #64748B; font-size: 14px; margin: 0;">Painel Restrito de Inteligência Comercial Radial B2B</p>
+            </div>
             """, unsafe_allow_html=True)
 
             username_input = st.text_input("Usuário", key="login_user", placeholder="Digite seu usuário")
@@ -136,8 +137,6 @@ def check_login():
                     st.rerun()
                 else:
                     st.error("Credenciais inválidas. Verifique usuário e senha.")
-
-            st.markdown("</div>", unsafe_allow_html=True)
         return False
     return True
 
